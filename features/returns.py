@@ -18,6 +18,6 @@ dataframe_20day_return =(dataframe/dataframe.shift(20)) - 1
 
 
 
-dataframe_1day_return.to_parquet('return1day.parquet', engine = 'pyarrow',compression= 'snappy')
-dataframe_5day_return.to_parquet('return5day.parquet', engine = 'pyarrow',compression= 'snappy')
-dataframe_20day_return.to_parquet('return20day.parquet', engine = 'pyarrow',compression= 'snappy')
+dataframe_1day_return.to_parquet('../data/return1day.parquet', engine = 'pyarrow',compression= 'snappy')
+dataframe_5day_return.to_parquet('../data/return5day.parquet', engine = 'pyarrow',compression= 'snappy')
+dataframe_20day_return.to_parquet('../data/return20day.parquet', engine = 'pyarrow',compression= 'snappy')

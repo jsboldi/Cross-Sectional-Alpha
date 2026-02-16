@@ -53,7 +53,7 @@ def calculate_volatility(filename):
 
     
 # uncomment to download the data
-# vol_frame = calculate_volatility("return1day.parquet")
+# vol_frame = calculate_volatility("../data/return1day.parquet")
     
 # vol_frame.to_parquet('volatility.parquet', engine = 'pyarrow',compression= 'snappy')
 
