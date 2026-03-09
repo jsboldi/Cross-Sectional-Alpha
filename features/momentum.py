@@ -8,20 +8,32 @@ import matplotlib.pyplot as plt
 # this should calculate the simple last 10 day momentum
 def calculate_momentum(file_data_name,window_horizon):
     dataframe = pd.read_parquet(file_data_name)
-    for num in range(0,window_horizon):
-        dataframe = dataframe + dataframe.shift(1)
-    
+    df = dataframe
+
+
+    print("Any <= 0 prices?", (df <= 0).any().any())
+    print("Count <= 0 prices:", (df <= 0).sum().sum())
+    print("NaN count:", df.isna().sum().sum())
+
+    x = np.log(df)
+    print("Inf count after log:", np.isinf(x.to_numpy()).sum())
+    print("NaN count after log:", np.isnan(x.to_numpy()).sum())
+    df.reset_index()
+    print(df.info())
+    dataframe = np.log(dataframe/dataframe.shift(window_horizon))
     return dataframe
         
         
-# frame = calculate_momentum("../data/return1day.parquet",9)
+frame = calculate_momentum("../data/return1day.parquet",9)
 
-# frame.to_parquet("1../data/0daymomentum.parquet",engine = "pyarrow",compression= "snappy")
+frame.to_parquet("../data/10daymomentum.parquet",engine = "pyarrow",compression= "snappy")
 
-# frame = calculate_momentum("../data/return1day.parquet",21)
+frame = calculate_momentum("../data/return1day.parquet",21)
 
-# frame.to_parquet("../data/21daymomentum.parquet",engine = "pyarrow",compression= "snappy")
+frame.to_parquet("../data/21daymomentum.parquet",engine = "pyarrow",compression= "snappy")
 
-# frame = calculate_momentum("../data/return1day.parquet",63)
+frame = calculate_momentum("../data/data.parquet",63)
 
-# frame.to_parquet("../data/63daymomentum.parquet",engine = "pyarrow",compression= "snappy")
+print(frame.info())
+
+frame.to_parquet("../data/63daymomentum.parquet",engine = "pyarrow",compression= "snappy")

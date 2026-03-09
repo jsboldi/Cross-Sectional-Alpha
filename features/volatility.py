@@ -31,29 +31,48 @@ def compute_individual_volatility(numlist):
 
 
 
-
 def calculate_volatility(filename):
     dataframe = pd.read_parquet(filename,engine="pyarrow")
-    vol_frame = pd.DataFrame(columns=dataframe.columns)
+    print(dataframe.head())
+    vol_frame = pd.DataFrame(index=dataframe.index, columns=dataframe.columns, dtype = np.float32)
+
     for column in dataframe.columns:
-        j = 0
-        stock_vol_list = []
-        for rtn in dataframe[column]:
-            #  we want to calulcate each return in the sliding windows squared difference of the mean
-            # if j >= 20 :
-            #     dataframe['column'][j:j-19]
-            if j > 19:
-                stock_vol_list.append(compute_individual_volatility(dataframe[column][j-19:j]))
-            j = j + 1
+
+        num_entries = len(dataframe[column])
+        
+        ticker_vol = []
+        for j in range(0,num_entries):
+            if j >= 19:
+                window = dataframe[column].iloc[j-19:j+1]
+                vol_value = compute_individual_volatility(window)
+            else:
+                vol_value = 0
+            ticker_vol.append(vol_value)
             
-        vol_frame[column] = stock_vol_list
+        
+        vol_frame[column] = ticker_vol
+
+      
+       
+        
+        
     return vol_frame
+
+
+
+
+
 
 
 
     
 # uncomment to download the data
-# vol_frame = calculate_volatility("../data/return1day.parquet")
+
+vol_frame = calculate_volatility("../data/return1day.parquet")
+#vol_frame = vol_frame.stack()
+
+print(vol_frame.tail(200))
+
     
-# vol_frame.to_parquet('volatility.parquet', engine = 'pyarrow',compression= 'snappy')
+vol_frame.to_parquet('../data/volatility.parquet', engine = 'pyarrow',compression= 'snappy')
 
