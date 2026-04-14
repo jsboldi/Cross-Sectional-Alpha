@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import bs4
+import fastparquet
 
 
 def find_tickers():
@@ -24,14 +25,10 @@ def print_tickers(tickerList):
 
 
 
-def  load_price_history(tickerList):
-    data = yf.download(tickerList,'2023-01-01','2025-12-31')
-    print(data['Close'].iloc[0])
-    return 
+def load_price_history(tickerList):
+    data = yf.download(tickerList,'2023-01-01','2025-12-31',)['Close']
+    
+    return data
     
     
 
-    
-    
-
-    

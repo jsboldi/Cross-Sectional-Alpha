@@ -31,7 +31,7 @@ def compute_individual_volatility(numlist):
 
 
 
-def calculate_volatility(filename):
+def calculate_volatility(filename, numdays):
     dataframe = pd.read_parquet(filename,engine="pyarrow")
     print(dataframe.head())
     vol_frame = pd.DataFrame(index=dataframe.index, columns=dataframe.columns, dtype = np.float32)
@@ -42,8 +42,8 @@ def calculate_volatility(filename):
         
         ticker_vol = []
         for j in range(0,num_entries):
-            if j >= 19:
-                window = dataframe[column].iloc[j-19:j+1]
+            if j >= numdays-1:
+                window = dataframe[column].iloc[j-(numdays-1):j+1]
                 vol_value = compute_individual_volatility(window)
             else:
                 vol_value = 0
@@ -67,12 +67,14 @@ def calculate_volatility(filename):
 
     
 # uncomment to download the data
-
-vol_frame = calculate_volatility("../data/return1day.parquet")
+vol_frame5 = calculate_volatility("../data/return1day.parquet",5)
+vol_frame20 = calculate_volatility("../data/return1day.parquet",20)
+vol_frame63 = calculate_volatility("../data/return1day.parquet",63)
 #vol_frame = vol_frame.stack()
 
-print(vol_frame.tail(200))
+
 
     
-vol_frame.to_parquet('../data/volatility.parquet', engine = 'pyarrow',compression= 'snappy')
-
+vol_frame5.to_parquet('../data/volatility5d.parquet', engine = 'pyarrow',compression= 'snappy')
+vol_frame20.to_parquet('../data/volatility20d.parquet', engine = 'pyarrow',compression= 'snappy')
+vol_frame63.to_parquet('../data/volatility63d.parquet', engine = 'pyarrow',compression= 'snappy')
