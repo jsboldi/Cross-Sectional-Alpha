@@ -1,5 +1,5 @@
 
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import lightgbm as lgb
@@ -17,8 +17,6 @@ prices = pd.read_parquet("../data/data.parquet",engine = "pyarrow")
 fwd_5d = np.log(prices.shift(-5)/prices)
 
 
-print("mom level0 unique sample:", mom_df.index.get_level_values(0)[:5].tolist())
-print("run level0 unique sample:", rtn_df.index.get_level_values(0)[:5].tolist())
 
 rtn_df = rtn_df.stack().rename("ret_5d")
 vol_df = vol_df.stack().rename("vol_20d")
@@ -30,10 +28,7 @@ training_panel = pd.concat([rtn_df,vol_df,mom_df,fwd_5d],axis= 1)
 training_panel = training_panel.dropna()
 
 
-#X_train,X_valid,Y_train,Y_valid  = model_selection.train_test_split(training_panel.loc[:,['5dayReturn','63dayMomentum','20dayVolatility']],training_panel.loc[:,'5d_Fwdreturn'],test_size= 0.2, random_state= 42)
 
-# X_train,X_valid,Y_train,Y_valid  = model_selection.train_test_split(training_panel.iloc[:,0:3],training_panel.iloc[:,3],test_size= 0.25, random_state= 42)
-# print(X_train.info())
 
 unique_dates = training_panel.index.get_level_values("Date").unique().sort_values()
 
@@ -120,6 +115,40 @@ equity_curve = np.exp(cumulative_log_return)
 
 print(equity_curve.tail())
 
+
+equity_curve.plot()
+plt.title("Strategy Equity Curve")
+plt.show()
+
+
 print(valid_panel)
 
 valid_panel.to_parquet("valid_panel.parquet")
+
+print(valid_panel.head())
+
+
+
+rebalance_dates = unique_dates[::5]
+
+bt_panel = valid_panel.loc[
+    valid_panel.index.get_level_values("Date").isin(rebalance_dates)
+].copy()
+
+bt_panel["pred"] = modelv1.predict(bt_panel[["ret_5d", "vol_20d", "mom_63d"]])
+
+bt_panel["rank"] = bt_panel.groupby("Date")["pred"].rank(pct=True)
+
+bt_panel["signal"] = 0
+bt_panel.loc[bt_panel["rank"] >= 0.9, "signal"] = 1
+bt_panel.loc[bt_panel["rank"] <= 0.1, "signal"] = -1
+
+bt_panel["strategy_ret"] = bt_panel["signal"] * bt_panel["fwd_ret_5d"]
+
+period_returns = bt_panel.groupby("Date")["strategy_ret"].mean()
+
+equity_curve2 = np.exp(period_returns.cumsum())
+equity_curve2.plot()
+plt.title("Strategy Equity Curve 2")
+plt.show()
+print(bt_panel)
